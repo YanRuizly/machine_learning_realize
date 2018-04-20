@@ -78,44 +78,29 @@ def transpose_image(images):
     # plt.show()
     return flipped
 
+def img_brightness(images , max_delta):
+    imaged = tf.cast(images, tf.float32)
+    brightness_image = tf.image.random_brightness(imaged, max_delta= max_delta)  # 随机调整亮度函数
+    return  brightness_image
+
+def img_contrast(images , lower, upper):
+    imaged = tf.cast(images, tf.float32)
+    contrast_image = tf.image.random_contrast(imaged, lower=lower, upper=upper)  # 随机调整对比度函数
+    return  contrast_image
+
 # image_raw_data = tf.read_file(img_dir)
-image_raw_data = tf.gfile.FastGFile(img_dir,'rb').read()
 
-with tf.Session() as Sess:
-    # 解码
-    img_data = tf.image.decode_jpeg(image_raw_data)
-    # 类型转化
-    img_data = tf.image.convert_image_dtype(img_data, dtype=tf.float32)
+def main():
+    image_raw_data = tf.gfile.FastGFile(img_dir,'rb').read()
+    with tf.Session() as Sess:
+        # 解码
+        img_data = tf.image.decode_jpeg(image_raw_data)
+        # 类型转化
+        img_data = tf.image.convert_image_dtype(img_data, dtype=tf.float32)
 
-    adjusted = img_whitening(img_data)
-    plt.imshow(adjusted.eval())
-    plt.show()
+        adjusted = img_contrast(img_data,0.2,0.8)
+        plt.imshow(adjusted.eval())
+        plt.show()
 
-    # 图像切割
-    # imaged = tf.cast(img_data, tf.float32)
-    # images = image_crop(img_data, shape=crop_shape)
-    # plt.imshow(images.eval())
-    # plt.show()
-    # 图像翻转
-    # images = image_flip(ima_data)
-    # plt.imshow(images.eval())
-    # plt.show()
-    # # 图像白化
-    # images = image_whitening(ima_data)
-    # plt.imshow(images.eval())
-    # plt.show()
-    # # 图像噪声:
-    # noise_mean = 0
-    # noise_std = 0.01
-    # images = image_noise(images, mean=noise_mean, std=noise_std)
-    # plt.imshow(images.eval())
-    # plt.show()
-    # boxes = tf.constant([[[0.05,0.05,0.9,0.7],[0.35,0.47,0.5,0.56]]])
-    #
-    # #运行6次获得6中不同的图像，在图中显示效果
-    # for i in range(6):
-    #     #将图像的尺寸调整为299*299
-    #     result = preprocess_for_train(ima_data,299,299,boxes)
-    #
-    #     plt.imshow(result.eval())
-    #     plt.show()
+if __name__ == '__main__':
+  main()
