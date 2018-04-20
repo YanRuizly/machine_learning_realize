@@ -46,78 +46,53 @@ def preprocess_for_train(image,height,width,bbox):
     distort_image = distort_color(distort_image,np.random.randint(1))
     return distort_image
 
-def image_crop(images, shape):
-    # 图像切割
-    new_images = []
-    for i in range(images.shape[0]):
-        old_image = images[i, :, :, :]
-        left = np.random.randint(old_image.shape[0] - shape[0] + 1)
-        top = np.random.randint(old_image.shape[1] - shape[1] + 1)
-        new_image = old_image[left: left + shape[0], top: top + shape[1], :]
-        new_images.append(new_image)
 
-    return np.array(new_images)
-
-def image_crop_test(images, shape):
-    # 图像切割
-    new_images = []
-    for i in range(images.shape[0]):
-        old_image = images[i, :, :, :]
-        left = int((old_image.shape[0] - shape[0]) / 2)
-        top = int((old_image.shape[1] - shape[1]) / 2)
-        new_image = old_image[left: left + shape[0], top: top + shape[1], :]
-        new_images.append(new_image)
-    return np.array(new_images)
-
-def image_flip(images):
-    # 图像翻转
-    for i in range(images.shape[0]):
-         old_image = images[i, :, :, :]
-         if np.random.random() < 0.5:
-              new_image = cv2.flip(old_image, 1)
-         else:
-             new_image = old_image
-         images[i, :, :, :] = new_image
-    return images
-
-def image_whitening(images):
+def img_whitening(images):
     # 图像白化
-    for i in range(images.shape[0]):
-        old_image = images[i, :, :, :]
-        new_image = (old_image - np.mean(old_image)) / np.std(old_image)
-        images[i, :, :, :] = new_image
-    return images
+    adjusted = tf.image.per_image_standardization(images)
+    # plt.imshow(adjusted.eval())
+    # plt.show()
+    return  adjusted
 
-def image_noise(images, mean=0, std=0.01):
-    # 图像噪声
-    for i in range(images.shape[0]):
-        old_image = images[i, :, :, :]
-        new_image = old_image
-        for i in range(images.shape[0]):
-             for j in range(images.shape[1]):
-                for k in range(images.shape[2]):
-                     new_image[i, j, k] += random.gauss(mean, std)
-        images[i, :, :, :] = new_image
-    return images
+def img_up_down(images ,type):
+    if type == "random":
+        flipped = tf.image.random_flip_up_down(images)
+    else:
+        flipped = tf.image.flip_up_down(images)
+    # plt.imshow(flipped.eval())
+    # plt.show()
+    return flipped
 
+def img_left_right(images ,type):
+    if type == "random":
+        flipped = tf.image.random_flip_left_right(images)
+    else:
+        flipped = tf.image.flip_left_right(images)
+    # plt.imshow(flipped.eval())
+    # plt.show()
+    return flipped
+
+def transpose_image(images):
+    flipped = tf.image.transpose_image(images)
+    # plt.imshow(flipped.eval())
+    # plt.show()
+    return flipped
 
 # image_raw_data = tf.read_file(img_dir)
 image_raw_data = tf.gfile.FastGFile(img_dir,'rb').read()
 
 with tf.Session() as Sess:
+    # 解码
     img_data = tf.image.decode_jpeg(image_raw_data)
-    print(img_data.eval())
-    plt.imshow(img_data.eval())
-    plt.show()
     # 类型转化
     img_data = tf.image.convert_image_dtype(img_data, dtype=tf.float32)
-    crop_shape = (24, 24, 3)
-    plt.imshow(img_data.eval())
-    plt.show()
-    adjusted = tf.image.per_image_standardization(img_data)
+
+    adjusted = img_whitening(img_data)
     plt.imshow(adjusted.eval())
     plt.show()
+
     # 图像切割
+    # imaged = tf.cast(img_data, tf.float32)
     # images = image_crop(img_data, shape=crop_shape)
     # plt.imshow(images.eval())
     # plt.show()
